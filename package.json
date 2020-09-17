@@ -1,6 +1,6 @@
 {
   "name": "pigeon",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Mongoose-Express-Node REST API bootstrapper",
   "main": "server.js",
   "scripts": {
