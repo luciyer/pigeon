@@ -33,6 +33,19 @@
           }
         }
       ]
+    },
+    {
+      "path" : "/birds/:id",
+      "methods" : [
+        {
+          "type" : "PATCH",
+          "controller" : {
+            "standardController": true,
+            "model": "Bird",
+            "method": "updateDocument"
+          }
+        }
+      ]
     }
   ]
 }

@@ -1,8 +1,8 @@
 const { validationResult } = require("express-validator")
 
-const Models = require("../../models")
+const Models = require("../models")
 
-const generateController = (modelName) => {
+module.exports = (modelName) => {
 
   if (!Models[modelName])
     throw Error(`Can not find model \"${modelName}\"`)
@@ -115,5 +115,3 @@ const generateController = (modelName) => {
   return this
 
 }
-
-module.exports = generateController
