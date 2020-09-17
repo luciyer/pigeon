@@ -22,12 +22,8 @@ You can see in this repo the following structure:
 middleware/
   birds/
     controllers/
-      index.js
     models/
-      bird.js
-      index.js
     validators/
-      index.js
     api.json
   index.js
   stdController.js
