@@ -46,6 +46,19 @@
           }
         }
       ]
+    },
+    {
+      "path" : "/hello/:name",
+      "methods" : [
+        {
+          "type" : "GET",
+          "controller" : {
+            "standardController": false,
+            "method": "helloController"
+          },
+          "validator" : "helloValidator"
+        }
+      ]
     }
   ]
 }

@@ -16,5 +16,5 @@ mongoose.connect(db_uri, {
 
 app
   .use(bodyParser.json())
-  .use(middleware(api))
+  .use("/api", middleware(api))
   .listen(process.env.PORT || 8080)

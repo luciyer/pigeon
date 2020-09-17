@@ -9,16 +9,28 @@ const stdController = require("./stdController"),
       customControllers = require("./controllers"),
       validators = require("./validators");
 
+
+
 const validateApiJson = (apiJson) => {
   // TODO
 }
 
 class ApiEndpoint {
 
-  constructor(path, methodArray, validator) {
-    this._path = path
-    this._methods = methodArray
-    this._validator = validator
+  constructor(endpointJson) {
+
+    if (!this.valid(endpointJson))
+      throw Error(`Invalid JSON structure. Skipping.`)
+
+    this._path = endpointJson.path
+    this._methods = endpointJson.methods
+    this._validator = endpointJson.validator
+
+  }
+
+  valid (json) {
+    // Validate Endpoint JSON here
+    return true
   }
 
   get path() {
@@ -31,24 +43,25 @@ class ApiEndpoint {
 
       const c = m.controller,
             methodObject = {
-              httpReqMethod: m.type.toLowerCase()
+              httpReqMethod: m.type.toLowerCase(),
             };
 
       if (c.standardController) {
         const stdCtrl = stdController(c.model)
         methodObject.controllerMethod = stdCtrl[c.method]
       } else {
-        methodObject.controllerMethod = customCtrl[c.method]
-      } return methodObject
+        methodObject.controllerMethod = customControllers[c.method]
+      }
+
+      if (m.validator)
+        methodObject.validator = validators[m.validator]
+
+      return methodObject
 
     }
 
     return this._methods.map(assignMethod)
 
-  }
-
-  get validator() {
-    return null
   }
 
 }
@@ -58,11 +71,18 @@ module.exports = (apiJson) => {
   const mw = express.Router()
 
   let attachEndpoint = (route, endpoint) => endpoint.methods
-    .forEach(e => route[e.httpReqMethod](e.controllerMethod))
+    .forEach(e => {
+      if (e.validator) {
+        route[e.httpReqMethod](e.validator, e.controllerMethod)
+      }
+      else {
+        route[e.httpReqMethod](e.controllerMethod)
+      }
+    })
 
   const apiEndpointObjects = apiJson.endpoints.map(e => {
-    const endpoint = new ApiEndpoint(e.path, e.methods)
-    attachEndpoint(mw.route(endpoint.path), endpoint)
+    const endpoint = new ApiEndpoint(e), route = mw.route(endpoint.path);
+    attachEndpoint(route, endpoint)
   })
 
   return mw
