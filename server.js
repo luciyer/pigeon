@@ -1,9 +1,7 @@
 const express = require("express"),
-      bodyParser = require("body-parser"),
       mongoose = require("mongoose");
 
-const middleware = require("./middleware"),
-      api = require("./api");
+const apis = require("./middleware");
 
 const app = express(),
       db_uri = process.env.MONGODB_URI || "mongodb://localhost/dev";
@@ -15,6 +13,6 @@ mongoose.connect(db_uri, {
 }).catch(console.error)
 
 app
-  .use(bodyParser.json())
-  .use("/api", middleware(api))
+  .use(express.json())
+  .use("/api/birds", apis.birds.middleware)
   .listen(process.env.PORT || 8080)

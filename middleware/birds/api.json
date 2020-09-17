@@ -1,0 +1,65 @@
+{
+  "meta": {
+    "name": "birds",
+    "controllerDirectory" : "controllers",
+    "modelDirectory" : "models",
+    "validatorDirectory": "validators"
+  },
+  "endpoints": [
+    {
+      "path" : "/",
+      "methods" : [
+        {
+          "type" : "GET",
+          "controller" : {
+            "standardController": true,
+            "model": "Bird",
+            "method": "retrieveDocuments"
+          }
+        },
+        {
+          "type" : "POST",
+          "controller" : {
+            "standardController": true,
+            "model": "Bird",
+            "method": "createDocument"
+          }
+        }
+      ]
+    },
+    {
+      "path" : "/:id",
+      "methods" : [
+        {
+          "type" : "GET",
+          "controller" : {
+            "standardController": true,
+            "model": "Bird",
+            "method": "readDocument"
+          }
+        },
+        {
+          "type" : "PATCH",
+          "controller" : {
+            "standardController": true,
+            "model": "Bird",
+            "method": "updateDocument"
+          }
+        }
+      ]
+    },
+    {
+      "path" : "/hello/:name",
+      "methods" : [
+        {
+          "type" : "GET",
+          "controller" : {
+            "standardController": false,
+            "method": "helloController"
+          },
+          "validator" : "helloValidator"
+        }
+      ]
+    }
+  ]
+}

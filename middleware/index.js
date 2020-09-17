@@ -1,90 +1,127 @@
 /*
   Generate a router middleware and attach to it all
-  routes which are defined in api.json file.
+  routes/methods which are defined in api.json file.
 */
 
-const express = require("express")
+const fs = require("fs"),
+      path = require("path"),
+      express = require("express");
 
-const stdController = require("./stdController"),
-      customControllers = require("./controllers"),
-      validators = require("./validators");
+const stdController = require("./stdController")
 
+class Api {
 
-
-const validateApiJson = (apiJson) => {
-  // TODO
-}
-
-class ApiEndpoint {
-
-  constructor(endpointJson) {
-
-    if (!this.valid(endpointJson))
-      throw Error(`Invalid JSON structure. Skipping.`)
-
-    this._path = endpointJson.path
-    this._methods = endpointJson.methods
-    this._validator = endpointJson.validator
-
+  constructor (apiDirPath) {
+    this._dirPath = apiDirPath
+    this._defPath = path.join(apiDirPath, "api.json")
+    this._defJson = JSON.parse(fs.readFileSync(this._defPath))
   }
 
-  valid (json) {
-    // Validate Endpoint JSON here
-    return true
+  get name() {
+    return this._defJson.meta.name
   }
 
-  get path() {
-    return this._path
+  get controllers () {
+    const { controllerDirectory } = this._defJson.meta,
+          ctrlPath = path.resolve(this._dirPath, controllerDirectory);
+    return require(ctrlPath)
+  }
+
+  get models () {
+    const { modelDirectory } = this._defJson.meta,
+          mdlPath = path.resolve(this._dirPath, modelDirectory);
+    return require(mdlPath)
+  }
+
+  get validators () {
+    const { validatorDirectory } = this._defJson.meta,
+          vldPath = path.resolve(this._dirPath, validatorDirectory);
+    return require(vldPath)
   }
 
   get methods() {
 
-    let assignMethod = (m) => {
+    const allMethods = {}, { endpoints } = this._defJson;
 
-      const c = m.controller,
-            methodObject = {
-              httpReqMethod: m.type.toLowerCase(),
-            };
+    endpoints.forEach(e => {
 
-      if (c.standardController) {
-        const stdCtrl = stdController(c.model)
-        methodObject.controllerMethod = stdCtrl[c.method]
-      } else {
-        methodObject.controllerMethod = customControllers[c.method]
-      }
+      const { path, methods } = e
 
-      if (m.validator)
-        methodObject.validator = validators[m.validator]
+      allMethods[path] = []
 
-      return methodObject
+      methods.forEach(m => {
 
-    }
+        const c = m.controller, methodObject = {
+          httpReqMethod: m.type.toLowerCase()
+        }
 
-    return this._methods.map(assignMethod)
+        if (c.standardController) {
+          const model = this.models[c.model], stdCtrl = stdController(model);
+          methodObject.controllerMethod = stdCtrl[c.method]
+        } else {
+          methodObject.controllerMethod = this.controllers[c.method]
+        }
+
+        if (m.validator)
+          methodObject.validator = this.validators[m.validator]
+
+        allMethods[path].push(methodObject)
+
+      });
+
+    });
+
+    return allMethods
+
+  }
+
+  get middleware () {
+
+    const router = express.Router()
+
+    Object.entries(this.methods).forEach(([path, methodList]) => {
+
+      const route = router.route(path)
+
+      methodList.forEach(m => {
+        if (m.validator)
+          route[m.httpReqMethod](m.validator, m.controllerMethod)
+        else
+          route[m.httpReqMethod](m.controllerMethod)
+      });
+
+    });
+
+    return router
 
   }
 
 }
 
-module.exports = (apiJson) => {
+const initializeApis = () => {
 
-  const mw = express.Router()
+  const apiListing = {}
 
-  let attachEndpoint = (route, endpoint) => endpoint.methods
-    .forEach(e => {
-      if (e.validator) {
-        route[e.httpReqMethod](e.validator, e.controllerMethod)
-      }
-      else {
-        route[e.httpReqMethod](e.controllerMethod)
-      }
-    })
+  const middlewareDirectory = path.resolve(__dirname),
+        directoryContents = fs.readdirSync(middlewareDirectory);
 
-  const apiEndpointObjects = apiJson.endpoints.map(e => {
-    const endpoint = new ApiEndpoint(e), route = mw.route(endpoint.path);
-    attachEndpoint(route, endpoint)
-  })
+  let createApiObject = (apiDirectory) => {
+    const apiDirectoryPath = path.join(middlewareDirectory, apiDirectory)
+    return new Api(apiDirectoryPath)
+  }
 
-  return mw
+  const apiDirectories = directoryContents.filter(item => {
+    const itemPath = path.join(middlewareDirectory, item)
+    return fs.statSync(itemPath).isDirectory()
+  });
+
+  apiDirectories.forEach(d => {
+    const api = createApiObject(d)
+    apiListing[api.name] = api
+  });
+
+  return apiListing
 
 }
+
+module.exports = initializeApis()

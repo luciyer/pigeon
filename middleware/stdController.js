@@ -1,13 +1,4 @@
-const { validationResult } = require("express-validator")
-
-const Models = require("../models")
-
-module.exports = (modelName) => {
-
-  if (!Models[modelName])
-    throw Error(`Can not find model \"${modelName}\"`)
-
-  const Model = Models[modelName]
+module.exports = (Model) => {
 
   this.retrieveDocuments = async (req, res) => {
     try {
@@ -29,11 +20,6 @@ module.exports = (modelName) => {
   }
 
   this.retrieveSiblings = async (req, res) => {
-
-    const errors = validationResult(req)
-    if (!errors.isEmpty())
-      return res.status(422).json({ errors: errors.array() })
-
     try {
       const { relation, id } = req.params, query = {};
       query[relation] = id
@@ -42,16 +28,9 @@ module.exports = (modelName) => {
     } catch (error) {
       return res.status(500).json(error)
     }
-
-
   }
 
   this.createDocument = async (req, res) => {
-
-    const errors = validationResult(req)
-    if (!errors.isEmpty())
-      return res.status(422).json({ errors: errors.array() })
-
     try {
       const doc = new Model(req.body),
             result = await doc.save();
@@ -59,15 +38,9 @@ module.exports = (modelName) => {
     } catch (error) {
       return res.status(500).json(error)
     }
-
   }
 
   this.readDocument = async (req, res) => {
-
-    const errors = validationResult(req)
-    if (!errors.isEmpty())
-      return res.status(422).json({ errors: errors.array() })
-
     try {
       const id = req.params.id,
             result = await Model.findById(id);
@@ -75,15 +48,9 @@ module.exports = (modelName) => {
     } catch (error) {
       return res.status(500).json(error)
     }
-
   }
 
   this.updateDocument = async (req, res) => {
-
-    const errors = validationResult(req)
-    if (!errors.isEmpty())
-      return res.status(422).json({ errors: errors.array() })
-
     try {
       const id = req.params.id,
             update = req.body,
@@ -93,15 +60,9 @@ module.exports = (modelName) => {
     } catch (error) {
         return res.status(500).json(error)
     }
-
   }
 
   this.deleteDocument = async (req, res) => {
-
-    const errors = validationResult(req)
-    if (!errors.isEmpty())
-      return res.status(422).json({ errors: errors.array() })
-
     try {
       const id = req.params.id,
             result = await Model.findByIdAndDelete(id).exec();
@@ -109,7 +70,6 @@ module.exports = (modelName) => {
     } catch (error) {
       return res.status(500).json(error)
     }
-
   }
 
   return this
