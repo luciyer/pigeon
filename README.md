@@ -1,8 +1,8 @@
 # 🐦
 
-### Simple POC for generating REST APIs from a JSON file, ie.
+### Simple POC for generating REST APIs from a JSON file
 
-Node, Express, Mongoose
+(Node, Express, Mongoose)
 
 ```
 {
