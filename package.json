@@ -1,0 +1,24 @@
+{
+  "name": "pigeon",
+  "version": "0.1.0",
+  "description": "Mongoose-Express-Node REST API bootstrapper",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "mongoose",
+    "express",
+    "node",
+    "rest",
+    "api"
+  ],
+  "author": "Luc Iyer <luciyer@gmail.com>",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "express": "^4.17.1",
+    "express-validator": "^6.6.1",
+    "mongoose": "^5.10.5"
+  }
+}
