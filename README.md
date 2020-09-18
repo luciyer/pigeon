@@ -4,6 +4,8 @@
 
 🐦 Pigeon is a lightweight framework that sits on top of express, express-validator, and mongoose. Pigeon provides an easy way to bootstrap a REST API.
 
+Drop in a mongoose schema (or write your own controllers), and you're off to the races.
+
 
 ```
 $ git clone https://github.com/luciyer/pigeon.git
