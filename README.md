@@ -45,26 +45,28 @@ $ pigeon-mw -a hello [-r route_prefix] [-m model_name]
 
 #### Standard Controller
 
-If you **include** a model (`-m Model`), it will attach standard controller methods and set default endpoints and methods that look like this:
+If you **include** a model (`-m SomeModelName`), it will attach standard controller methods and set default endpoints and methods that look like this:
 
-```javascript
-{
-  "/" : [
-    { type: "GET", method: "retrieveDocuments" },
-    { type: "POST", method: "createDocument" },
-  ],
-  "/count": [
-    { type: "GET", method: "countDocuments" }
-  ],
-  "/:id": [
-    { type: "GET", method: "retrieveDocument" },
-    { type: "PATCH", method: "updateDocument" },
-    { type: "DELETE", method: "deleteDocument" },
-  ],
-  "/:relation/:id": [
-    { type: "GET", method: "retrieveSiblings" },
-  ]
-}
+`hello/config.js`
+```json
+"endpoints": [
+  {
+    "path" : "/",
+    "methods" : [
+      {
+        "type" : "GET",
+        "controller" : {
+          "standardController": true,
+          "model": "SomeModelName",
+          "method": "retrieveDocuments"
+        },
+        "validator": ""
+      },
+      ...
+    ]
+  },
+  ...
+]
 ```
 
 You can edit standard controller behavior in `src/standardController.js`, but it's not recommended.
@@ -73,24 +75,25 @@ You can edit standard controller behavior in `src/standardController.js`, but it
 
 If you **exclude** `-m`, you'll have to define your own methods and export them in `hello/controllers/index.js`, then reference them in `hello/config.json`.
 
-```javascript
-{
-  "/" : [
-    { type: "GET", method: "" },
-    { type: "POST", method: "" },
-  ],
-  "/count": [
-    { type: "GET", method: "" }
-  ],
-  "/:id": [
-    { type: "GET", method: "" },
-    { type: "PATCH", method: "" },
-    { type: "DELETE", method: "" },
-  ],
-  "/:relation/:id": [
-    { type: "GET", method: "" },
-  ]
-}
+`hello/config.js`
+```json
+"endpoints": [
+  {
+    "path" : "/",
+    "methods" : [
+      {
+        "type" : "GET",
+        "controller" : {
+          "standardController": false,
+          "method": "myCustomControllerMethod"
+        },
+        "validator": ""
+      },
+      ...
+    ]
+  },
+  ...
+]
 ```
 
 
@@ -120,22 +123,37 @@ const idValidator = [
     .withMessage("Please provide a valid id.")
 ]
 
-const reporterMiddleware = (req, res, next) => {
+const reportErrors = (req, res, next) => {
     const errors = validationResult(req)
     if (!errors.isEmpty())
       return res.status(422).json({ errors: errors.array() })
     next();
 }
 
-const addValidator = (validationArray) => {
-  return [
-    validationArray,
-    reporterMiddleware
-  ]
-}
-
 module.exports = {
-  idValidator: addValidator(idValidator)
+  idValidator: [ idValidator, reportErrors ]
 }
 
+```
+
+`hello/config.js`
+```json
+"endpoints": [
+  ...
+  {
+    "path" : "/:id",
+    "methods" : [
+      {
+        "type" : "GET",
+        "controller" : {
+          "standardController": false,
+          "method": "myCustomControllerMethod"
+        },
+        "validator": "idValidator"
+      },
+      ...
+    ]
+  },
+  ...
+]
 ```
