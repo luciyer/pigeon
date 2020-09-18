@@ -1,0 +1,86 @@
+{
+  "meta": {
+    "name": "hello",
+    "controllerDirectory": "controllers",
+    "modelDirectory": "models",
+    "validatorDirectory": "validators"
+  },
+  "endpoints": [
+    {
+      "path": "/",
+      "methods": [
+        {
+          "type": "GET",
+          "controller": {
+            "standardController": false,
+            "method": ""
+          },
+          "validator": ""
+        },
+        {
+          "type": "POST",
+          "controller": {
+            "standardController": false,
+            "method": ""
+          },
+          "validator": ""
+        }
+      ]
+    },
+    {
+      "path": "/count",
+      "methods": [
+        {
+          "type": "GET",
+          "controller": {
+            "standardController": false,
+            "method": ""
+          },
+          "validator": ""
+        }
+      ]
+    },
+    {
+      "path": "/:id",
+      "methods": [
+        {
+          "type": "GET",
+          "controller": {
+            "standardController": false,
+            "method": ""
+          },
+          "validator": ""
+        },
+        {
+          "type": "PATCH",
+          "controller": {
+            "standardController": false,
+            "method": ""
+          },
+          "validator": ""
+        },
+        {
+          "type": "DELETE",
+          "controller": {
+            "standardController": false,
+            "method": ""
+          },
+          "validator": ""
+        }
+      ]
+    },
+    {
+      "path": "/:relation/:id",
+      "methods": [
+        {
+          "type": "GET",
+          "controller": {
+            "standardController": false,
+            "method": ""
+          },
+          "validator": ""
+        }
+      ]
+    }
+  ]
+}

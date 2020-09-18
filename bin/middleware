@@ -1,0 +1,92 @@
+#!/usr/bin/env node
+
+/*
+$ pigeon-mw -a app_name [-r route] [-m model_name]
+*/
+
+const path = require("path"),
+      fsp = require("fs").promises,
+      args = require("minimist")(process.argv.slice(2));
+
+const root = path.resolve("./apps")
+
+const generateEndpoints = async () => {
+
+  if (!args.a)
+    return console.error("Please provide arg -a app_name.\n")
+
+  const app = args.a,
+        route = args.r,
+        model = args.m;
+
+  const paths = {
+    appRoot: path.join(root, app),
+    configFile: path.join(root, app, "config.json")
+  }
+
+  const defaultEndpoints = {
+    "/" : [
+      { type: "GET", method: "retrieveDocuments" },
+      { type: "POST", method: "createDocument" },
+    ],
+    "/count": [
+      { type: "GET", method: "countDocuments" }
+    ],
+    "/:id": [
+      { type: "GET", method: "retrieveDocument" },
+      { type: "PATCH", method: "updateDocument" },
+      { type: "DELETE", method: "deleteDocument" },
+    ],
+    "/:relation/:id": [
+      { type: "GET", method: "retrieveSiblings" },
+    ]
+  }
+
+  await fsp.stat(paths.appRoot)
+    .catch(error => { return console.error(error) })
+
+  await fsp.stat(paths.configFile)
+    .catch(error => { return console.error(error) })
+
+  const configFile = await fsp.readFile(paths.configFile),
+        configJson = JSON.parse(configFile);
+
+  Object.entries(defaultEndpoints).forEach(([path, methods]) => {
+
+    if (route)
+      path = `/${route}${path}`
+
+    const endpointObject = { path: path, methods: [] }
+
+    methods.forEach(m => {
+
+      const methodObject = {
+          type: m.type,
+          controller: {},
+          validator: ""
+      }
+
+      if (model) {
+        methodObject.controller.standardController = true
+        methodObject.controller.model = model
+        methodObject.controller.method = m.method
+      } else {
+        methodObject.controller.standardController = false
+        methodObject.controller.method = ""
+      }
+
+      endpointObject.methods.push(methodObject)
+
+    })
+
+    configJson.endpoints.push(endpointObject)
+
+  })
+
+  const updatedJson = JSON.stringify(configJson, null, 2)
+
+  await fsp.writeFile(paths.configFile, updatedJson)
+
+}
+
+generateEndpoints()

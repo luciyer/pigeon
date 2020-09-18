@@ -1,18 +1,20 @@
 const express = require("express"),
       mongoose = require("mongoose");
 
-const { birds } = require("./middleware");
+const Pigeon = require("./src"),
+      utils = require("./src/utils");
 
-const app = express(),
-      db_uri = process.env.MONGODB_URI || "mongodb://localhost/dev";
-
-mongoose.connect(db_uri, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  useFindAndModify: false
-}).catch(console.error)
+const app = express();
 
 app
   .use(express.json())
-  .use("/api/birds", birds.middleware)
-  .listen(process.env.PORT || 8080)
+  .listen(8080, utils.serverStarted)
+
+/*
+
+After generating an app, you can assign its middleware like so:
+
+const blog = new Pigeon("./apps/blog")
+app.use("/api/blog", blog.middleware)
+
+*/

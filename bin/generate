@@ -1,0 +1,70 @@
+#!/usr/bin/env node
+
+/*
+$ pigeon-app app_name
+*/
+
+const path = require("path"),
+      fsp = require("fs").promises,
+      args = require("minimist")(process.argv.slice(2));
+
+const root = path.resolve("./apps")
+
+const generateApp = async () => {
+
+  if (!args._[0])
+    return console.error("Oops. Please provide a name for your app.\n")
+
+  const app = args._[0]
+
+  const folderPaths = [
+    path.join(root, app, "controllers"),
+    path.join(root, app, "models"),
+    path.join(root, app, "validators")
+  ]
+
+  const basicConfig = {
+    meta: {
+      name: app,
+      controllerDirectory: "controllers",
+      modelDirectory: "models",
+      validatorDirectory: "validators"
+    },
+    endpoints: []
+  }
+
+  const configString = JSON.stringify(basicConfig, null, 2)
+
+  const folderPromises = folderPaths.map(d => {
+    return new Promise(async (resolve, reject) => {
+      await fsp.mkdir(d, { recursive: true }).catch(reject)
+      await fsp.writeFile(path.join(d, "index.js"), `module.exports = {}`)
+      resolve({
+        folder: `${path.basename(d)}/`,
+        index: `index.js`,
+      })
+    })
+  })
+
+
+  const folderResults = await Promise.allSettled(folderPromises)
+
+  const configResult = await new Promise(async (resolve, reject) => {
+    await fsp.writeFile(path.join(root, app, "config.json"), configString)
+      .catch(reject)
+    resolve(`config.json`)
+  })
+
+  console.log(`Generated app:\n`)
+  console.log(`${app}/`)
+
+  folderResults.forEach(r => {
+    console.log(`  ${r.value.folder}`)
+    console.log(`    ${r.value.index}`)
+  })
+
+  console.log(`  ${configResult}\n`)
+
+}
+
+generateApp()

@@ -1,47 +1,43 @@
-/*
-  Generate a router middleware and attach to it all
-  routes/methods which are defined in api.json file.
-*/
-
 const fs = require("fs"),
       path = require("path"),
-      express = require("express");
+      express = require("express"),
+    { checkSchema } = require('express-validator');
 
-const stdController = require("./stdController")
+const stdController = require("./standardController")
 
-class Api {
+class Pigeon {
 
   constructor (apiDirPath) {
     this._dirPath = apiDirPath
-    this._defPath = path.join(apiDirPath, "api.json")
-    this._defJson = JSON.parse(fs.readFileSync(this._defPath))
+    this._cfgPath = path.join(apiDirPath, "config.json")
+    this._cfgJson = JSON.parse(fs.readFileSync(this._cfgPath))
   }
 
   get name() {
-    return this._defJson.meta.name
+    return this._cfgJson.meta.name
   }
 
   get controllers () {
-    const { controllerDirectory } = this._defJson.meta,
+    const { controllerDirectory } = this._cfgJson.meta,
           ctrlPath = path.resolve(this._dirPath, controllerDirectory);
     return require(ctrlPath)
   }
 
   get models () {
-    const { modelDirectory } = this._defJson.meta,
+    const { modelDirectory } = this._cfgJson.meta,
           mdlPath = path.resolve(this._dirPath, modelDirectory);
     return require(mdlPath)
   }
 
   get validators () {
-    const { validatorDirectory } = this._defJson.meta,
+    const { validatorDirectory } = this._cfgJson.meta,
           vldPath = path.resolve(this._dirPath, validatorDirectory);
     return require(vldPath)
   }
 
   get methods() {
 
-    const allMethods = {}, { endpoints } = this._defJson;
+    const allMethods = {}, { endpoints } = this._cfgJson;
 
     endpoints.forEach(e => {
 
@@ -98,30 +94,4 @@ class Api {
 
 }
 
-const initializeApis = () => {
-
-  const apiListing = {}
-
-  const middlewareDirectory = path.resolve(__dirname),
-        directoryContents = fs.readdirSync(middlewareDirectory);
-
-  let createApiObject = (apiDirectory) => {
-    const apiDirectoryPath = path.join(middlewareDirectory, apiDirectory)
-    return new Api(apiDirectoryPath)
-  }
-
-  const apiDirectories = directoryContents.filter(item => {
-    const itemPath = path.join(middlewareDirectory, item)
-    return fs.statSync(itemPath).isDirectory()
-  });
-
-  apiDirectories.forEach(d => {
-    const api = createApiObject(d)
-    apiListing[api.name] = api
-  });
-
-  return apiListing
-
-}
-
-module.exports = initializeApis()
+module.exports = Pigeon

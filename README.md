@@ -2,53 +2,65 @@
 
 ### What's Pigeon?
 
-🐦 Pigeon is a lightweight tool for generating a REST API using mongoose, express, and express-validator.
+🐦 Pigeon is a lightweight framework that sits on top of express, express-validator, and mongoose. Pigeon provides an easy way to bootstrap a REST API.
 
-### Assumptions
-
-It's important to define what this tool does and does not facilitate.
-
-I assume that developers who use pigeon are comfortable writing mongoose schemas, if their project calls for it.
-
-I also assume that they will understand how to extend the tooling by writing their own custom controllers and validation if they please.
-
-### How does it work?
-
-Nearly everything you need to understand resides in `middleware/index.js`.
-
-You can see in this repo the following structure:
 
 ```
-middleware/
-  birds/
-    controllers/
-    models/
-    validators/
-    api.json
-  index.js
-  stdController.js
+$ git clone https://github.com/luciyer/pigeon.git
+$ cd pigeon/
+$ npm i -g
+```
+To generate an empty app:
+
+```
+$ pigeon-app hello
 ```
 
-`middleware/index.js` does two very simple but critical tasks. It finds all the folders within `middleware/`, and it parses their contents creating an instance of the `Api` object, ie.
+To generate an empty-ish middleware in `hello/config.json`:
+
+```
+$ pigeon-mw -a hello
+```
+
+To generate a middleware with a standard (mongoose) controller in `hello/config.json`:
+
+```
+$ pigeon-mw -a hello -m [model]
+```
+
+Default endpoints and methods look like this:
 
 ```javascript
-const birdsApi = new Api(path_to_birds_directory)
+{
+  "/" : [
+    { type: "GET", method: "retrieveDocuments" },
+    { type: "POST", method: "createDocument" },
+  ],
+  "/count": [
+    { type: "GET", method: "countDocuments" }
+  ],
+  "/:id": [
+    { type: "GET", method: "retrieveDocument" },
+    { type: "PATCH", method: "updateDocument" },
+    { type: "DELETE", method: "deleteDocument" },
+  ],
+  "/:relation/:id": [
+    { type: "GET", method: "retrieveSiblings" },
+  ]
+}
 ```
 
-This instance of the `Api` object will hold unite all of the controller functions, models, validators, and methods it finds in the `api.json` file. It will generate an instance of `express.Router()` which we can use as a middleware.
+If you want to prefix (for multiple models, for example) those standard routes, you can do the following:
 
-Now that we have an `Api` object which holds all of the necessary pieces of our API, we can use it like so...
+```
+$ pigeon-mw -a hello -r [route] -m [model]
+```
 
-```javascript
-/* server.js */
+And you're routes will instead be
 
-[...]
-
-const { birds } = require("./middleware")
-
-const app = express()
-
-app
-  .use("/api/birds", birds.middleware)
-
+```
+/[route]/
+/[route]/count
+/[route]/:id
+/[route]/:relation/:id
 ```
