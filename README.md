@@ -71,7 +71,7 @@ You can edit standard controller behavior in `src/standardController.js`, but it
 
 #### Custom Controllers
 
-If you **exclude** `-m`, you'll have to define your own methods and export them in `hello/controllers/index.js`.
+If you **exclude** `-m`, you'll have to define your own methods and export them in `hello/controllers/index.js`, then reference them in `hello/config.json`.
 
 ```javascript
 {
