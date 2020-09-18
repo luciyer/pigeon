@@ -12,25 +12,40 @@ $ git clone https://github.com/luciyer/pigeon.git
 $ cd pigeon/
 $ npm i -g
 ```
-To generate an empty app:
+
+### Apps
+
+To generate an app named "hello":
 
 ```
 $ pigeon-app hello
 ```
 
-To generate an empty-ish middleware in `hello/config.json`:
+Will create
 
 ```
-$ pigeon-mw -a hello
+apps/  
+  hello/
+    controllers/
+      index.js
+    models/
+      index.js
+    validators/
+      index.js
+    config.json
 ```
 
-To generate a middleware with a standard (mongoose) controller in `hello/config.json`:
+### Middlewares
+
+To generate a middleware in `hello/config.json`:
 
 ```
-$ pigeon-mw -a hello -m [model]
+$ pigeon-mw -a hello [-r route_prefix] [-m model_name]
 ```
 
-Default endpoints and methods look like this:
+#### Standard Controller
+
+If you **include** a model (`-m Model`), it will attach standard controller methods and set default endpoints and methods that look like this:
 
 ```javascript
 {
@@ -52,17 +67,75 @@ Default endpoints and methods look like this:
 }
 ```
 
-If you want to prefix (for multiple models, for example) those standard routes, you can do the following:
+You can edit standard controller behavior in `src/standardController.js`, but it's not recommended.
 
-```
-$ pigeon-mw -a hello -r [route] -m [model]
+#### Custom Controllers
+
+If you **exclude** `-m`, you'll have to define your own methods and export them in `hello/controllers/index.js`.
+
+```javascript
+{
+  "/" : [
+    { type: "GET", method: "" },
+    { type: "POST", method: "" },
+  ],
+  "/count": [
+    { type: "GET", method: "" }
+  ],
+  "/:id": [
+    { type: "GET", method: "" },
+    { type: "PATCH", method: "" },
+    { type: "DELETE", method: "" },
+  ],
+  "/:relation/:id": [
+    { type: "GET", method: "" },
+  ]
+}
 ```
 
-And you're routes will instead be
+
+### Route Prefixes
+
+Including `-r`, you can prefix those routes:
 
 ```
 /[route]/
 /[route]/count
 /[route]/:id
 /[route]/:relation/:id
+```
+
+### Validation
+
+Export from `hello/validators/index.js`, using express-validator format an array that looks like `[ [validation], reporterFunction ]`. In `hello/config.json`, find the relevant method and set (for example) `"validator": "idValidator"`.
+
+Here's an example:
+
+```javascript
+const { check, validationResult } = require("express-validator")
+
+const idValidator = [
+  check("id")
+    .isMongoId()
+    .withMessage("Please provide a valid id.")
+]
+
+const reporterMiddleware = (req, res, next) => {
+    const errors = validationResult(req)
+    if (!errors.isEmpty())
+      return res.status(422).json({ errors: errors.array() })
+    next();
+}
+
+const addValidator = (validationArray) => {
+  return [
+    validationArray,
+    reporterMiddleware
+  ]
+}
+
+module.exports = {
+  idValidator: addValidator(idValidator)
+}
+
 ```
