@@ -1,4 +1,4 @@
-# 🐦 
+# 🐦
 
 ### What's Pigeon?
 
@@ -33,8 +33,9 @@ $ touch apps/birds/models/bird.js
 
 Write your mongoose schema there, and export it, then export the model...
 
-`apps/birds/models/index.js`
+
 ```javascript
+// apps/birds/models/index.js
 const mongoose = require("mongoose")
 module.exports = {
   Bird: mongoose.model("Bird", require("./bird"))
@@ -62,9 +63,8 @@ Within `apps/birds/config.json` we've now created a mapping of paths, methods, a
 
 #### Step 4. Export Middleware(s)
 
-`apps/index.js`
-
 ```javascript
+// apps/index.js
 // [...]
 const getAppList = () => {
   return [ "birds" ] // and any other apps you made
@@ -91,8 +91,9 @@ You can add custom controllers and custom validators within `apps/[app_name]/con
 
 Example: Adding a validator to `/api/birds/:id` to make sure that the ID is a valid mongoDB ObjectId
 
-`birds/validators/index.js`
+
 ```javascript
+// birds/validators/index.js
 const { check, validationResult } = require("express-validator")
 
 const idValidator = [
@@ -136,9 +137,8 @@ Now requests to that path will be validated according to the `idValidator` funct
 
 Example: Adding a custom controller to `/api/birds/hello`
 
-`birds/controllers/index.js`
 ```javascript
-
+// birds/controllers/index.js
 const sayHello = (req, res) => {
   res.status(200).json({ message: "Hello!" })
 }
