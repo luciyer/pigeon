@@ -13,6 +13,8 @@ $ npm i -g
 
 ### Zero to API
 
+This repo comes with an app called `birds`. Here's how I created that in about 30 seconds:
+
 #### Step 1. Generate an App
 
 ```
