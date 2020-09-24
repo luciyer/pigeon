@@ -1,0 +1,93 @@
+{
+  "meta": {
+    "name": "birds",
+    "controllerDirectory": "controllers",
+    "modelDirectory": "models",
+    "validatorDirectory": "validators"
+  },
+  "endpoints": [
+    {
+      "path": "/",
+      "methods": [
+        {
+          "type": "GET",
+          "controller": {
+            "standardController": true,
+            "model": "Bird",
+            "method": "retrieveDocuments"
+          },
+          "validator": ""
+        },
+        {
+          "type": "POST",
+          "controller": {
+            "standardController": true,
+            "model": "Bird",
+            "method": "createDocument"
+          },
+          "validator": ""
+        }
+      ]
+    },
+    {
+      "path": "/count",
+      "methods": [
+        {
+          "type": "GET",
+          "controller": {
+            "standardController": true,
+            "model": "Bird",
+            "method": "countDocuments"
+          },
+          "validator": ""
+        }
+      ]
+    },
+    {
+      "path": "/:id",
+      "methods": [
+        {
+          "type": "GET",
+          "controller": {
+            "standardController": true,
+            "model": "Bird",
+            "method": "readDocument"
+          },
+          "validator": ""
+        },
+        {
+          "type": "PATCH",
+          "controller": {
+            "standardController": true,
+            "model": "Bird",
+            "method": "updateDocument"
+          },
+          "validator": ""
+        },
+        {
+          "type": "DELETE",
+          "controller": {
+            "standardController": true,
+            "model": "Bird",
+            "method": "deleteDocument"
+          },
+          "validator": ""
+        }
+      ]
+    },
+    {
+      "path": "/:relation/:id",
+      "methods": [
+        {
+          "type": "GET",
+          "controller": {
+            "standardController": true,
+            "model": "Bird",
+            "method": "retrieveSiblings"
+          },
+          "validator": ""
+        }
+      ]
+    }
+  ]
+}

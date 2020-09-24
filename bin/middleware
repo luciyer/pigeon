@@ -33,7 +33,7 @@ const generateEndpoints = async () => {
       { type: "GET", method: "countDocuments" }
     ],
     "/:id": [
-      { type: "GET", method: "retrieveDocument" },
+      { type: "GET", method: "readDocument" },
       { type: "PATCH", method: "updateDocument" },
       { type: "DELETE", method: "deleteDocument" },
     ],

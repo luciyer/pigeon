@@ -4,8 +4,6 @@
 
 🐦 Pigeon is a lightweight framework that sits on top of express, express-validator, and mongoose. Pigeon provides an easy way to bootstrap a REST API.
 
-Drop in a mongoose schema (or write your own controllers), and you're off to the races.
-
 
 ```
 $ git clone https://github.com/luciyer/pigeon.git
@@ -13,107 +11,85 @@ $ cd pigeon/
 $ npm i -g
 ```
 
-### Apps
+### Zero to API
 
-To generate an app named "hello":
-
-```
-$ pigeon-app hello
-```
-
-Will create
+#### Step 1. Generate an App
 
 ```
-apps/  
-  hello/
-    controllers/
-      index.js
-    models/
-      index.js
-    validators/
-      index.js
-    config.json
+$ pigeon-app birds
 ```
 
-### Middlewares
+This will create a folder inside of `apps/` called `birds/` with some scaffolding.
 
-To generate a middleware in `hello/config.json`:
+#### Step 2. Write Schemas (Optional)
 
-```
-$ pigeon-mw -a hello [-r route_prefix] [-m model_name]
-```
-
-#### Standard Controller
-
-If you **include** a model (`-m SomeModelName`), it will attach standard controller methods and set default endpoints and methods that look like this:
-
-`hello/config.js`
-```json
-"endpoints": [
-  {
-    "path" : "/",
-    "methods" : [
-      {
-        "type" : "GET",
-        "controller" : {
-          "standardController": true,
-          "model": "SomeModelName",
-          "method": "retrieveDocuments"
-        },
-        "validator": ""
-      },
-      ...
-    ]
-  },
-  ...
-]
-```
-
-You can edit standard controller behavior in `src/standardController.js`, but it's not recommended.
-
-#### Custom Controllers
-
-If you **exclude** `-m`, you'll have to define your own methods and export them in `hello/controllers/index.js`, then reference them in `hello/config.json`.
-
-`hello/config.js`
-```json
-"endpoints": [
-  {
-    "path" : "/",
-    "methods" : [
-      {
-        "type" : "GET",
-        "controller" : {
-          "standardController": false,
-          "method": "myCustomControllerMethod"
-        },
-        "validator": ""
-      },
-      ...
-    ]
-  },
-  ...
-]
-```
-
-
-### Route Prefixes
-
-Including `-r`, you can prefix those routes:
+Create a new model inside `apps/birds/models`.
 
 ```
-/[route]/
-/[route]/count
-/[route]/:id
-/[route]/:relation/:id
+$ touch apps/birds/models/bird.js
 ```
 
-### Validation
+Write your mongoose schema there, and export it, then export the model...
 
-Export from `hello/validators/index.js`, using express-validator format an array that looks like `[ [validation], reporterFunction ]`. In `hello/config.json`, find the relevant method and set (for example) `"validator": "idValidator"`.
+`apps/birds/models/index.js`
+```javascript
+const mongoose = require("mongoose")
+module.exports = {
+  Bird: mongoose.model("Bird", require("./bird"))
+}
+```
 
-Here's an example:
+_Note: I like my schemas in separate files. But this is up to you. You can write and export all your models directly from `index.js` if it floats your boat._
 
+#### Step 3. Generate a Middleware Configuration
+
+```
+$ pigeon-mw -a birds -m Bird
+```
+
+Optionally, adding `-r [route_prefix]` to the above command, you can prefix the standard routes, ie.
+
+```
+/[route_prefix]/
+/[route_prefix]/count
+/[route_prefix]/query
+/[route_prefix]/:id
+```
+
+Within `apps/birds/config.json` we've now created a mapping of paths, methods, and validators.
+
+#### Step 4. Export Middleware(s)
+
+`apps/index.js`
+
+```javascript
+// [...]
+const getAppList = () => {
+  return [ "birds" ] // and any other apps you made
+}
+// [...]
+```
+
+#### Step 5. Attach Middleware
+
+`server.js`
+```javascript
+// [...]
+app
+  .use(express.json())
+  .use("/api/birds", apps.birds.router) // <-- Adding this here!
+  .listen(8080, utils.serverStarted)
+```
+
+All done.. Yay!
+
+### Make it Flexible
+
+You can add custom controllers and custom validators within `apps/[app_name]/controllers` and `apps/[app_name]/validators`, and then within `apps/[app_name]/config.json` reference those controllers or validators with the associated path(s).
+
+Example: Adding a validator to `/api/birds/:id` to make sure that the ID is a valid mongoDB ObjectId
+
+`birds/validators/index.js`
 ```javascript
 const { check, validationResult } = require("express-validator")
 
@@ -136,24 +112,53 @@ module.exports = {
 
 ```
 
-`hello/config.js`
+`birds/config.json` (the relevant part...)
 ```json
-"endpoints": [
-  ...
-  {
-    "path" : "/:id",
-    "methods" : [
-      {
-        "type" : "GET",
-        "controller" : {
-          "standardController": false,
-          "method": "myCustomControllerMethod"
-        },
-        "validator": "idValidator"
+{
+  "path" : "/:id",
+  "methods" : [
+    {
+      "type": "GET",
+      "controller": {
+        "standardController": true,
+        "model": "Bird",
+        "method": "readDocument"
       },
-      ...
-    ]
-  },
-  ...
-]
+      "validator": "idValidator"
+    }
+  ]
+}
+```
+
+Now requests to that path will be validated according to the `idValidator` function.
+
+Example: Adding a custom controller to `/api/birds/hello`
+
+`birds/controllers/index.js`
+```javascript
+
+const sayHello = (req, res) => {
+  res.status(200).json({ message: "Hello!" })
+}
+
+module.exports = {
+  sayHello: sayHello
+}
+```
+
+`birds/config.json`
+```json
+{
+  "path" : "/hello",
+  "methods" : [
+    {
+      "type" : "GET",
+      "controller" : {
+        "standardController": false,
+        "method": "sayHello"
+      },
+      "validator": ""
+    }
+  ]
+}
 ```

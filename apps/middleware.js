@@ -1,16 +1,16 @@
 const fs = require("fs"),
       path = require("path"),
-      express = require("express"),
-    { checkSchema } = require('express-validator');
+      express = require("express");
 
-const stdController = require("./standardController")
+const StandardController = require("./standard_controller")
 
-class Pigeon {
+class Middleware {
 
-  constructor (apiDirPath) {
-    this._dirPath = apiDirPath
-    this._cfgPath = path.join(apiDirPath, "config.json")
-    this._cfgJson = JSON.parse(fs.readFileSync(this._cfgPath))
+  constructor (dirName) {
+    this._dirPath = `./${dirName}`
+    this._cfgRelPath = path.join(this._dirPath, "config.json")
+    this._cfgAbsPath = path.resolve(__dirname, this._dirPath, "config.json")
+    this._cfgJson = JSON.parse(fs.readFileSync(this._cfgAbsPath))
   }
 
   get name() {
@@ -19,19 +19,19 @@ class Pigeon {
 
   get controllers () {
     const { controllerDirectory } = this._cfgJson.meta,
-          ctrlPath = path.resolve(this._dirPath, controllerDirectory);
+          ctrlPath = path.resolve(__dirname, this._dirPath, controllerDirectory);
     return require(ctrlPath)
   }
 
   get models () {
     const { modelDirectory } = this._cfgJson.meta,
-          mdlPath = path.resolve(this._dirPath, modelDirectory);
+          mdlPath = path.resolve(__dirname, this._dirPath, modelDirectory);
     return require(mdlPath)
   }
 
   get validators () {
     const { validatorDirectory } = this._cfgJson.meta,
-          vldPath = path.resolve(this._dirPath, validatorDirectory);
+          vldPath = path.resolve(__dirname, this._dirPath, validatorDirectory);
     return require(vldPath)
   }
 
@@ -52,7 +52,7 @@ class Pigeon {
         }
 
         if (c.standardController) {
-          const model = this.models[c.model], stdCtrl = stdController(model);
+          const model = this.models[c.model], stdCtrl = new StandardController(model).requestHandlers;
           methodObject.controllerMethod = stdCtrl[c.method]
         } else {
           methodObject.controllerMethod = this.controllers[c.method]
@@ -71,7 +71,7 @@ class Pigeon {
 
   }
 
-  get middleware () {
+  get router () {
 
     const router = express.Router()
 
@@ -80,7 +80,7 @@ class Pigeon {
       const route = router.route(path)
 
       methodList.forEach(m => {
-        if (m.validator)
+        if (m.validator && m.validator !== "")
           route[m.httpReqMethod](m.validator, m.controllerMethod)
         else
           route[m.httpReqMethod](m.controllerMethod)
@@ -92,6 +92,35 @@ class Pigeon {
 
   }
 
+  log() {
+
+    const { endpoints } = this._cfgJson
+
+    console.log("\n")
+    console.log(`\"${this.name}\" middleware:\n`)
+
+    endpoints.forEach(({path, methods}) => {
+      methods.forEach(m => {
+        const c = m.controller
+        const ctrlString = c.standardController
+          ? `[standard: ${c.model}.${c.method}]`
+          : `[custom: ${c.method}]`;
+        const validatorString = m.validator
+          ? `[validator: ${m.validator}]`
+          : ``;
+        console.log(
+          "\t",
+          `${m.type.toUpperCase()} \"${path}\":`,
+          ctrlString,
+          validatorString
+        )
+      })
+    })
+
+    console.log("\n")
+
+  }
+
 }
 
-module.exports = Pigeon
+module.exports = Middleware

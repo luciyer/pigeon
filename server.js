@@ -1,20 +1,14 @@
-const express = require("express"),
-      mongoose = require("mongoose");
+const express = require("express")
 
-const Pigeon = require("./src"),
-      utils = require("./src/utils");
+const apps = require("./apps"),
+      utils = require("./utils");
 
-const app = express();
+const app = express()
+
+// See routes/methods/controllers/validators for created apps
+utils.logMiddlewares(apps)
 
 app
   .use(express.json())
+  .use("/api/birds", apps.birds.router)
   .listen(8080, utils.serverStarted)
-
-/*
-
-After generating an app, you can assign its middleware like so:
-
-const blog = new Pigeon("./apps/blog")
-app.use("/api/blog", blog.middleware)
-
-*/
