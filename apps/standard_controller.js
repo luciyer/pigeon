@@ -14,10 +14,8 @@ module.exports = class {
       return this.Model.estimatedDocumentCount().exec()
     }
 
-    const getSiblings = (relation, id) => {
-      const query = {}
-      query[relation] = id
-      return this.Model.find(query)
+    const queryDocs = (body) => {
+      return this.Model.find(body)
     }
 
     const createDoc = (body) => {
@@ -40,7 +38,7 @@ module.exports = class {
     return {
       getDocs,
       countDocs,
-      getSiblings,
+      queryDocs,
       createDoc,
       readDoc,
       updateDoc,
@@ -60,7 +58,7 @@ module.exports = class {
       return res.status(500).json({ error: error.message })
     }
 
-    const retrieveDocuments = async (req, res) => {
+    const retrieveDocuments = (req, res) => {
       this.dbMethods.getDocs()
         .then(result => handleSuccess(res, result))
         .catch(error => handleError(res, error))
@@ -72,9 +70,8 @@ module.exports = class {
         .catch(error => handleError(res, error))
     }
 
-    const retrieveSiblings = (req, res) => {
-      const { relation, id } = req.params
-      this.dbMethods.getSiblings(relation, id)
+    const queryDocuments = (req, res) => {
+      this.dbMethods.queryDocs(req.body)
         .then(result => handleSuccess(res, result))
         .catch(error => handleError(res, error))
     }
@@ -85,19 +82,19 @@ module.exports = class {
         .catch(error => handleError(res, error))
     }
 
-    const readDocument = async (req, res) => {
+    const readDocument = (req, res) => {
       this.dbMethods.readDoc(req.params.id)
         .then(result => handleSuccess(res, result))
         .catch(error => handleError(res, error))
     }
 
-    const updateDocument = async (req, res) => {
+    const updateDocument = (req, res) => {
       this.dbMethods.updateDoc(req.params.id, req.body)
         .then(result => handleSuccess(res, result))
         .catch(error => handleError(res, error))
     }
 
-    const deleteDocument = async (req, res) => {
+    const deleteDocument = (req, res) => {
       this.dbMethods.deleteDoc(req.params.id)
         .then(result => handleSuccess(res, result))
         .catch(error => handleError(res, error))
